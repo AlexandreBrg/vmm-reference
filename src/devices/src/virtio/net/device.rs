@@ -57,6 +57,7 @@ where
         let config_space = Vec::new();
         let virtio_cfg = VirtioConfig::new(device_features, queues, config_space);
 
+        // Register a new irqfd to vm fd
         let common_cfg = CommonConfig::new(virtio_cfg, env).map_err(Error::Virtio)?;
 
         let net = Arc::new(Mutex::new(Net {

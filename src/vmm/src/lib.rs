@@ -177,6 +177,10 @@ pub struct Vmm {
     // Arc<Mutex<>> because the same device (a dyn DevicePio/DeviceMmio from IoManager's
     // perspective, and a dyn MutEventSubscriber from EventManager's) is managed by the 2 entities,
     // and isn't Copy-able; so once one of them gets ownership, the other one can't anymore.
+    /// The event Manager is used in order to check if the device deployed has been
+    /// activated or not. As stated by the transcript of VirtIO devices, the guest
+    /// MUST validate the startup of the VirtIO device from its side before we start it up
+    /// from our side.
     event_mgr: EventManager<Arc<Mutex<dyn MutEventSubscriber + Send>>>,
     exit_handler: WrappedExitHandler,
     block_devices: Vec<Arc<Mutex<Block>>>,
@@ -537,7 +541,9 @@ impl Vmm {
     fn add_net_device(&mut self, cfg: &NetConfig) -> Result<()> {
         let mem = Arc::new(self.guest_memory.clone());
 
-        let range = MmioRange::new(MmioAddress(MMIO_GAP_START + 0x2000), 0x1000).unwrap();
+        // Provisioning a range of RAM for the net device
+        // Why 0x2000: Indirect Descriptor area
+        let range = MmioRange::new(MmioAddress(MMIO_GAP_START + 0x2000),  ).unwrap();
         let mmio_cfg = MmioConfig { range, gsi: 6 };
 
         let mut guard = self.device_mgr.lock().unwrap();

@@ -72,6 +72,9 @@ pub type Subscriber = Arc<Mutex<dyn MutEventSubscriber + Send>>;
 pub struct MmioConfig {
     pub range: MmioRange,
     // The interrupt assigned to the device.
+    /// Global System Interrupts can be thought of as ACPI Plug and Play IRQ numbers.
+    /// They are used to virtualize interrupts in tables and in ASL methods that perform resource allocation of interrupts.
+    /// https://stackoverflow.com/questions/45206171/how-sci-system-control-interrupt-vector-is-defined
     pub gsi: u32,
 }
 
@@ -82,6 +85,8 @@ impl MmioConfig {
             .map_err(Error::Bus)
     }
 
+    /// Not used in the code
+    /// Seems to be here so we can add more devices
     pub fn next(&self) -> Result<Self> {
         let range = self.range;
         let next_start = range
@@ -107,7 +112,7 @@ pub struct Env<'a, M, B> {
     pub event_mgr: &'a mut EventManager<Arc<Mutex<dyn MutEventSubscriber + Send>>>,
     // This stands for something that implements `MmioManager`, and can be passed as a reference
     // or smart pointer (such as a `Mutex` guard).
-    pub mmio_mgr: B,
+    pub mmio_mgr: B ,
     // The virtio MMIO device parameters (MMIO range and interrupt to be used).
     pub mmio_cfg: MmioConfig,
     // We pass a mutable reference to the kernel cmdline `String` so the device can add any
